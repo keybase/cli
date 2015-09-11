@@ -74,15 +74,22 @@ var helpCommand = Command{
 	Usage:   "Shows a list of commands or help for one command",
 	Action: func(c *Context) {
 		args := c.Args()
+
 		if args.Present() {
 			ShowCommandHelp(c, args.First())
-		} else if c.Parent() != nil {
-			// this is the case for something like `app command help`.
-			// without this check, it was showing application help.
-			ShowSubcommandHelp(c.Parent())
-		} else {
-			ShowAppHelp(c)
+			return
 		}
+
+		if c.Parent() != nil {
+			if c.Parent().Parent() != nil {
+				// this is the case for something like `app command help`.
+				// without this check, it was showing application help.
+				ShowSubcommandHelp(c.Parent())
+				return
+			}
+		}
+
+		ShowAppHelp(c)
 	},
 }
 
