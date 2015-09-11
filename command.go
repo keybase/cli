@@ -36,6 +36,9 @@ type Command struct {
 	SkipFlagParsing bool
 	// Boolean to hide built-in help command
 	HideHelp bool
+	// for non-flag argument help in USAGE section
+	// For `app command <path1> <path2>`, ArgumentHelp would be "<path1> <path2>"
+	ArgumentHelp string
 
 	commandNamePath []string
 }
