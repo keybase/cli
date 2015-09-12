@@ -69,10 +69,9 @@ OPTIONS:
 `
 
 var helpCommand = Command{
-	Name:        "help",
-	Aliases:     []string{"h"},
-	Usage:       "keybase help <command>",
-	Description: "Shows a list of commands or help for one command.",
+	Name:    "help",
+	Aliases: []string{"h"},
+	Usage:   "Shows a list of commands or help for one command",
 	Action: func(c *Context) {
 		args := c.Args()
 
