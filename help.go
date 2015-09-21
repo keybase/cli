@@ -143,6 +143,13 @@ func ShowCommandHelp(ctx *Context, command string) {
 		}
 	}
 
+	for _, h := range ctx.App.HelpTopics {
+		if h.Name == command {
+			HelpPrinter(ctx.App.Writer, h.Body, ctx.App)
+			return
+		}
+	}
+
 	if ctx.App.CommandNotFound != nil {
 		ctx.App.CommandNotFound(ctx, command)
 	} else {
@@ -246,4 +253,10 @@ func checkCommandCompletions(c *Context, name string) bool {
 	}
 
 	return false
+}
+
+type HelpTopic struct {
+	Name  string
+	Usage string
+	Body  string
 }

@@ -19,6 +19,8 @@ type App struct {
 	Version string
 	// List of commands to execute
 	Commands []Command
+	// List of help topics (help not associated with a command)
+	HelpTopics []HelpTopic
 	// List of flags to parse
 	Flags []Flag
 	// Boolean to enable bash completion commands
