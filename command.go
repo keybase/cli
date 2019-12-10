@@ -110,29 +110,29 @@ func (c Command) Run(ctx *Context) error {
 	if c.SkipFlagParsing {
 		err = set.Parse(ctx.Args().Tail())
 	} else {
-		var cmdargs []string
-		ctxargs := ctx.Args()
-		nextIsArg := false
-		var flagargs []string
-		for index, arg := range ctxargs[1:] {
+		ctxArgs := ctx.Args()
+		var regularArgs []string
+		var flagArgs []string
+		willBeFlagValue := false
+		for index, arg := range ctxArgs[1:] {
 			if arg == "--" {
-				cmdargs = append(cmdargs, ctxargs[index:]...)
+				// check len!
+				regularArgs = append(regularArgs, ctxArgs[index+1:]...)
 				break
 			}
-			if nextIsArg {
-				flagargs = append(flagargs, arg)
-				nextIsArg = false
+			if willBeFlagValue {
+				flagArgs = append(flagArgs, arg)
+				willBeFlagValue = false
 				continue
 			}
 			if strings.HasPrefix(arg, "-") {
-				flagargs = append(flagargs, arg)
-
-				nextIsArg = nextArgWillBeFlagValueHeuristic(arg, set)
+				flagArgs = append(flagArgs, arg)
+				willBeFlagValue = nextArgWillBeFlagValueHeuristic(arg, set)
 			} else {
-				cmdargs = append(cmdargs, arg)
+				regularArgs = append(regularArgs, arg)
 			}
 		}
-		err = set.Parse(append(flagargs, cmdargs...))
+		err = set.Parse(append(flagArgs, regularArgs...))
 	}
 
 	if err != nil {

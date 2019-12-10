@@ -153,8 +153,8 @@ var durationFlagTests = []struct {
 	name     string
 	expected string
 }{
-	{"help", "--help \"0\"\t"},
-	{"h", "-h \"0\"\t"},
+	{"help", "--help \"0s\"\t"},
+	{"h", "-h \"0s\"\t"},
 }
 
 func TestDurationFlagHelpOutput(t *testing.T) {
@@ -164,7 +164,7 @@ func TestDurationFlagHelpOutput(t *testing.T) {
 		output := flag.String()
 
 		if output != test.expected {
-			t.Errorf("%s does not match %s", output, test.expected)
+			t.Errorf("got %q; expected %q", output, test.expected)
 		}
 	}
 }
@@ -607,61 +607,6 @@ func TestParseMultiBoolFromEnvCascade(t *testing.T) {
 				t.Errorf("main name not set from env")
 			}
 			if ctx.Bool("d") != true {
-				t.Errorf("short name not set from env")
-			}
-		},
-	}
-	a.Run([]string{"run"})
-}
-
-func TestParseMultiBoolT(t *testing.T) {
-	a := App{
-		Flags: []Flag{
-			BoolTFlag{Name: "serve, s"},
-		},
-		Action: func(ctx *Context) {
-			if ctx.BoolT("serve") != true {
-				t.Errorf("main name not set")
-			}
-			if ctx.BoolT("s") != true {
-				t.Errorf("short name not set")
-			}
-		},
-	}
-	a.Run([]string{"run", "--serve"})
-}
-
-func TestParseMultiBoolTFromEnv(t *testing.T) {
-	os.Clearenv()
-	os.Setenv("APP_DEBUG", "0")
-	a := App{
-		Flags: []Flag{
-			BoolTFlag{Name: "debug, d", EnvVar: "APP_DEBUG"},
-		},
-		Action: func(ctx *Context) {
-			if ctx.BoolT("debug") != false {
-				t.Errorf("main name not set from env")
-			}
-			if ctx.BoolT("d") != false {
-				t.Errorf("short name not set from env")
-			}
-		},
-	}
-	a.Run([]string{"run"})
-}
-
-func TestParseMultiBoolTFromEnvCascade(t *testing.T) {
-	os.Clearenv()
-	os.Setenv("APP_DEBUG", "0")
-	a := App{
-		Flags: []Flag{
-			BoolTFlag{Name: "debug, d", EnvVar: "COMPAT_DEBUG,APP_DEBUG"},
-		},
-		Action: func(ctx *Context) {
-			if ctx.BoolT("debug") != false {
-				t.Errorf("main name not set from env")
-			}
-			if ctx.BoolT("d") != false {
 				t.Errorf("short name not set from env")
 			}
 		},
