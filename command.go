@@ -116,7 +116,6 @@ func (c Command) Run(ctx *Context) error {
 		willBeFlagValue := false
 		for index, arg := range restArgs {
 			if arg == "--" {
-				// check len!
 				regularArgs = append(regularArgs, restArgs[index:]...)
 				break
 			}
