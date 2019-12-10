@@ -110,14 +110,14 @@ func (c Command) Run(ctx *Context) error {
 	if c.SkipFlagParsing {
 		err = set.Parse(ctx.Args().Tail())
 	} else {
-		ctxArgs := ctx.Args()
+		restArgs := ctx.Args()[1:]
 		var regularArgs []string
 		var flagArgs []string
 		willBeFlagValue := false
-		for indexMinusOne, arg := range ctxArgs[1:] {
+		for index, arg := range restArgs {
 			if arg == "--" {
 				// check len!
-				regularArgs = append(regularArgs, ctxArgs[indexMinusOne+1:]...)
+				regularArgs = append(regularArgs, restArgs[index:]...)
 				break
 			}
 			if willBeFlagValue {
