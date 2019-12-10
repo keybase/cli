@@ -114,10 +114,10 @@ func (c Command) Run(ctx *Context) error {
 		var regularArgs []string
 		var flagArgs []string
 		willBeFlagValue := false
-		for index, arg := range ctxArgs[1:] {
+		for indexMinusOne, arg := range ctxArgs[1:] {
 			if arg == "--" {
 				// check len!
-				regularArgs = append(regularArgs, ctxArgs[index+1:]...)
+				regularArgs = append(regularArgs, ctxArgs[indexMinusOne+1:]...)
 				break
 			}
 			if willBeFlagValue {
