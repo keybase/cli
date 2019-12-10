@@ -223,6 +223,62 @@ func TestApp_RunAsSubcommandParseFlags(t *testing.T) {
 	expect(t, context.String("lang"), "spanish")
 }
 
+func TestAppSubcommandFlagsInMiddle(t *testing.T) {
+	var context *Context
+
+	a := NewApp()
+	a.Commands = []Command{
+		{
+			Name: "foo",
+			Action: func(c *Context) {
+				context = c
+			},
+			Flags: []Flag{
+				StringFlag{
+					Name:  "lang",
+					Value: "english",
+					Usage: "language for the greeting",
+				},
+				BoolFlag{
+					Name:  "force",
+					Usage: "force cmd",
+				},
+			},
+		},
+	}
+
+	a.Run([]string{"", "foo", "failure", "--lang=spanish", "abcd", "zoo"})
+	expect(t, context.Args().Get(0), "failure")
+	expect(t, context.String("lang"), "spanish")
+	expect(t, context.Bool("force"), false)
+
+	a.Run([]string{"", "foo", "failure", "--lang=spanish", "abcd", "--force", "zoo"})
+	expect(t, context.Args().Get(0), "failure")
+	expect(t, context.String("lang"), "spanish")
+	expect(t, context.Bool("force"), true)
+
+	a.Run([]string{"", "foo", "failure", "--lang", "spanish", "abcd", "--force", "zoo"})
+	expect(t, context.Args().Get(0), "failure")
+	expect(t, context.String("lang"), "spanish")
+	expect(t, context.Bool("force"), true)
+
+	a.Run([]string{"", "foo", "--lang", "spanish", "failure", "abcd", "--force", "zoo"})
+	expect(t, context.Args().Get(0), "failure")
+	expect(t, context.String("lang"), "spanish")
+	expect(t, context.Bool("force"), true)
+
+	a.Run([]string{"", "foo", "--lang", "spanish", "--force", "failure", "abcd", "--force=f", "zoo"})
+	expect(t, context.Args().Get(0), "failure")
+	expect(t, context.String("lang"), "spanish")
+	expect(t, context.Bool("force"), false)
+	fmt.Println(context.Args())
+
+	a.Run([]string{"", "foo", "--force=false", "failure", "abcd", "--lang=espanol", "zoo"})
+	expect(t, context.Args().Get(0), "failure")
+	expect(t, context.String("lang"), "espanol")
+	expect(t, context.Bool("force"), false)
+}
+
 func TestApp_CommandWithFlagBeforeTerminator(t *testing.T) {
 	var parsedOption string
 	var args []string
