@@ -30,110 +30,6 @@ func ExampleApp() {
 	// Hello Jeremy
 }
 
-func ExampleAppSubcommand() {
-	// set args for examples sake
-	os.Args = []string{"say", "hi", "english", "--name", "Jeremy"}
-	app := NewApp()
-	app.Name = "say"
-	app.Commands = []Command{
-		{
-			Name:        "hello",
-			Aliases:     []string{"hi"},
-			Usage:       "use it to see a description",
-			Description: "This is how we describe hello the function",
-			Subcommands: []Command{
-				{
-					Name:        "english",
-					Aliases:     []string{"en"},
-					Usage:       "sends a greeting in english",
-					Description: "greets someone in english",
-					Flags: []Flag{
-						StringFlag{
-							Name:  "name",
-							Value: "Bob",
-							Usage: "Name of the person to greet",
-						},
-					},
-					Action: func(c *Context) {
-						fmt.Println("Hello,", c.String("name"))
-					},
-				},
-			},
-		},
-	}
-
-	app.Run(os.Args)
-	// Output:
-	// Hello, Jeremy
-}
-
-func ExampleAppHelp() {
-	// set args for examples sake
-	os.Args = []string{"greet", "h", "describeit"}
-
-	app := NewApp()
-	app.Name = "greet"
-	app.Flags = []Flag{
-		StringFlag{Name: "name", Value: "bob", Usage: "a name to say"},
-	}
-	app.Commands = []Command{
-		{
-			Name:        "describeit",
-			Aliases:     []string{"d"},
-			Usage:       "use it to see a description",
-			Description: "This is how we describe describeit the function",
-			Action: func(c *Context) {
-				fmt.Printf("i like to describe things")
-			},
-		},
-	}
-	app.Run(os.Args)
-	// Output:
-	// NAME:
-	//    describeit - use it to see a description
-	//
-	// USAGE:
-	//    command describeit [arguments...]
-	//
-	// DESCRIPTION:
-	//    This is how we describe describeit the function
-}
-
-func ExampleAppBashComplete() {
-	// set args for examples sake
-	os.Args = []string{"greet", "--generate-bash-completion"}
-
-	app := NewApp()
-	app.Name = "greet"
-	app.EnableBashCompletion = true
-	app.Commands = []Command{
-		{
-			Name:        "describeit",
-			Aliases:     []string{"d"},
-			Usage:       "use it to see a description",
-			Description: "This is how we describe describeit the function",
-			Action: func(c *Context) {
-				fmt.Printf("i like to describe things")
-			},
-		}, {
-			Name:        "next",
-			Usage:       "next example",
-			Description: "more stuff to see when generating bash completion",
-			Action: func(c *Context) {
-				fmt.Printf("the next example")
-			},
-		},
-	}
-
-	app.Run(os.Args)
-	// Output:
-	// describeit
-	// d
-	// next
-	// help
-	// h
-}
-
 func TestApp_Run(t *testing.T) {
 	s := ""
 
@@ -223,6 +119,62 @@ func TestApp_RunAsSubcommandParseFlags(t *testing.T) {
 	expect(t, context.String("lang"), "spanish")
 }
 
+func TestAppSubcommandFlagsInMiddle(t *testing.T) {
+	var context *Context
+
+	a := NewApp()
+	a.Commands = []Command{
+		{
+			Name: "foo",
+			Action: func(c *Context) {
+				context = c
+			},
+			Flags: []Flag{
+				StringFlag{
+					Name:  "lang",
+					Value: "english",
+					Usage: "language for the greeting",
+				},
+				BoolFlag{
+					Name:  "force",
+					Usage: "force cmd",
+				},
+			},
+		},
+	}
+
+	a.Run([]string{"", "foo", "failure", "--lang=spanish", "abcd", "zoo"})
+	expect(t, context.Args().Get(0), "failure")
+	expect(t, context.String("lang"), "spanish")
+	expect(t, context.Bool("force"), false)
+
+	a.Run([]string{"", "foo", "failure", "--lang=spanish", "abcd", "--force", "zoo"})
+	expect(t, context.Args().Get(0), "failure")
+	expect(t, context.String("lang"), "spanish")
+	expect(t, context.Bool("force"), true)
+
+	a.Run([]string{"", "foo", "failure", "--lang", "spanish", "abcd", "--force", "zoo"})
+	expect(t, context.Args().Get(0), "failure")
+	expect(t, context.String("lang"), "spanish")
+	expect(t, context.Bool("force"), true)
+
+	a.Run([]string{"", "foo", "--lang", "spanish", "failure", "abcd", "--force", "zoo"})
+	expect(t, context.Args().Get(0), "failure")
+	expect(t, context.String("lang"), "spanish")
+	expect(t, context.Bool("force"), true)
+
+	a.Run([]string{"", "foo", "--lang", "spanish", "--force", "failure", "abcd", "--force=f", "zoo"})
+	expect(t, context.Args().Get(0), "failure")
+	expect(t, context.String("lang"), "spanish")
+	expect(t, context.Bool("force"), false)
+	fmt.Println(context.Args())
+
+	a.Run([]string{"", "foo", "--force=false", "failure", "abcd", "--lang=espanol", "zoo"})
+	expect(t, context.Args().Get(0), "failure")
+	expect(t, context.String("lang"), "espanol")
+	expect(t, context.Bool("force"), false)
+}
+
 func TestApp_CommandWithFlagBeforeTerminator(t *testing.T) {
 	var parsedOption string
 	var args []string
@@ -283,7 +235,6 @@ func TestApp_Float64Flag(t *testing.T) {
 }
 
 func TestApp_ParseSliceFlags(t *testing.T) {
-	var parsedOption, firstArg string
 	var parsedIntSlice []int
 	var parsedStringSlice []string
 
@@ -297,8 +248,6 @@ func TestApp_ParseSliceFlags(t *testing.T) {
 		Action: func(c *Context) {
 			parsedIntSlice = c.IntSlice("p")
 			parsedStringSlice = c.StringSlice("ip")
-			parsedOption = c.String("option")
-			firstArg = c.Args().First()
 		},
 	}
 	app.Commands = []Command{command}
